@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 const downloadResume = () => {
   const a = document.createElement("a");
-  a.href = "/resume.pdf";
+  a.href = "/Rajguru_Mathiyalagan_Resume.pdf";
   a.download = "Rajguru_Mathiyalagan_Resume.pdf";
   document.body.appendChild(a);
   a.click();

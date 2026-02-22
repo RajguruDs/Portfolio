@@ -94,7 +94,7 @@ const Hero = () => {
                 View Projects <ArrowRight className="w-4 h-4" />
               </button>
               <a
-                href="/resume.pdf"
+                href="/Rajguru_Mathiyalagan_Resume.pdf"
                 download="Rajguru_Mathiyalagan_Resume.pdf"
                 className="btn-secondary"
               >
