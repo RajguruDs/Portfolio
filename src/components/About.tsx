@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 const downloadResume = () => {
   const a = document.createElement("a");
-  a.href = "https://drive.google.com/uc?export=download&id=17XkK5DHS0-aPYS9Edt1OErgMqOpqb2DE";
+  a.href = "/resume.pdf";
   a.download = "Rajguru_Mathiyalagan_Resume.pdf";
   document.body.appendChild(a);
   a.click();

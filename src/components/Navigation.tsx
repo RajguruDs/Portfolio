@@ -128,8 +128,8 @@ const Navigation = () => {
         {/* CTA */}
         <div className="hidden md:flex items-center gap-2">
           <a
-            href="https://drive.google.com/uc?export=download&id=17XkK5DHS0-aPYS9Edt1OErgMqOpqb2DE"
-            download
+            href="/resume.pdf"
+            download="Rajguru_Mathiyalagan_Resume.pdf"
             className="btn-ghost text-xs py-1.5 px-3"
           >
             Resume
