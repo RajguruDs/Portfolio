@@ -1,177 +1,171 @@
-import { Github, Linkedin, Mail, ArrowRight, Download, MapPin } from "lucide-react";
-import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { ArrowRight, Download, Github, Linkedin } from "lucide-react";
+import { m, type Variants } from "framer-motion";
+import TiltCard from "@/components/TiltCard";
+import { avatar, links, profile } from "@/content/site";
+import { EASE_OUT_EXPO, fadeRise, stagger, usePrefersReducedMotion } from "@/lib/motion";
 
-const up = (delay = 0) => ({
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] as const },
-});
+// Two headline lines; each word slides up from behind its own mask.
+const HEADLINE = ["Turning data into insight,", "and models into working software."];
 
-const stats = [
-  { value: "8.60", label: "CGPA", sub: "B.Sc. IT" },
-  { value: "90%", label: "ML Accuracy", sub: "PropVision" },
-  { value: "1.6M+", label: "Records", sub: "Training data" },
-  { value: "2", label: "ML Projects", sub: "Deployed" },
-];
+// Concrete values of the --accent and --rule tokens (Framer Motion interpolates colours, not CSS variables).
+const ACCENT = "#233E8B";
+const RULE = "#E3DED5";
+
+const actionItem: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE_OUT_EXPO } },
+};
+
+const linkLift =
+  "transition-[color,transform] duration-200 ease-out motion-safe:hover:-translate-y-px motion-safe:focus-visible:-translate-y-px";
+
+/** The headline, word by word. The full sentence is real text in the DOM from the first render. */
+const Headline = ({ reduce }: { reduce: boolean }) => {
+  let index = 0;
+  return (
+    <h1 id="hero-title" className="display">
+      {HEADLINE.map((line, li) => {
+        const words = line.split(" ");
+        return (
+          <span key={line} className="block">
+            {words.map((word, wi) => {
+              const i = index++;
+              return (
+                <span key={wi}>
+                  {/* Padding + equal negative margin give descenders room inside the mask without changing layout. */}
+                  <span className="-mb-[0.12em] inline-block overflow-hidden pb-[0.12em] align-top">
+                    {reduce ? (
+                      <span className="inline-block">{word}</span>
+                    ) : (
+                      <m.span
+                        className="inline-block"
+                        initial={{ y: "115%" }}
+                        animate={{ y: "0%" }}
+                        transition={{ duration: 0.8, delay: 0.1 + i * 0.045, ease: EASE_OUT_EXPO }}
+                      >
+                        {word}
+                      </m.span>
+                    )}
+                  </span>
+                  {wi < words.length - 1 && " "}
+                </span>
+              );
+            })}
+            {li < HEADLINE.length - 1 && " "}
+          </span>
+        );
+      })}
+    </h1>
+  );
+};
 
 const Hero = () => {
-  const go = (id: string) =>
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  const reduce = usePrefersReducedMotion();
+  const group = (step: number, delay: number) =>
+    reduce ? {} : { variants: stagger(step, delay), initial: "hidden" as const, animate: "show" as const };
+  const item = reduce ? {} : { variants: actionItem };
 
   return (
-    <section
-      id="home"
-      className="min-h-screen flex items-center relative overflow-hidden"
-      style={{ paddingTop: "60px" }}
-    >
-      {/* Gradient background */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 55% at 80% 15%, rgba(37,99,235,0.07) 0%, transparent 60%), " +
-            "radial-gradient(ellipse 50% 40% at 10% 90%, rgba(13,148,136,0.06) 0%, transparent 55%), " +
-            "#F7F8FA",
-        }}
-      />
-      <div className="absolute inset-0 dot-grid opacity-40 pointer-events-none" />
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-10 py-16 lg:py-24">
-        <div className="grid lg:grid-cols-[1fr_420px] gap-16 items-center">
+    <section id="top" aria-labelledby="hero-title" className="outline-none">
+      <div className="page grid gap-14 pb-20 pt-14 md:pb-28 md:pt-20 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-end lg:gap-16">
+        <div>
+          <m.p {...fadeRise(reduce, 0, { y: 10, duration: 0.7 })} className="eyebrow mb-6">
+            {profile.name} · Data &amp; Machine Learning · {profile.location}
+          </m.p>
+          <Headline reduce={reduce} />
+          <m.p {...fadeRise(reduce, 0.55, { y: 18, duration: 0.8 })} className="lede mt-7 max-w-prose">
+            I'm an early-career data professional with a B.Sc. in Information Technology. I work across analytics,
+            machine learning and the code around them: cleaning messy datasets, testing what the numbers actually say,
+            and building tools people can use. Most recently I interned at Roopsee, building validation tooling for a
+            product-scoring system.
+          </m.p>
+          <m.p {...fadeRise(reduce, 0.62, { y: 14, duration: 0.8 })} className="mt-4 text-[0.9375rem] text-ink-3">
+            Open to {profile.roles} roles.
+          </m.p>
 
-          {/* ── Left: Text ── */}
-          <div>
-            {/* Available badge */}
-            <motion.div {...up(0)} className="mb-6">
-              <span className="tag tag-green text-xs font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block mr-1" />
-                Open to opportunities
-              </span>
-            </motion.div>
-
-            {/* Headline */}
-            <motion.h1
-              {...up(0.06)}
-              className="text-5xl sm:text-6xl lg:text-[64px] font-extrabold tracking-tight leading-[1.06] mb-5"
-              style={{ color: "var(--text-primary)" }}
-            >
-              Rajguru<br />
-              <span className="text-accent-gradient">Mathiyalagan</span>
-            </motion.h1>
-
-            {/* Role */}
-            <motion.p
-              {...up(0.12)}
-              className="text-lg font-semibold mb-2"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              Aspiring Data Scientist · ML Engineer
-            </motion.p>
-
-            {/* Location */}
-            <motion.p
-              {...up(0.15)}
-              className="text-sm flex items-center gap-1.5 mb-5"
-              style={{ color: "var(--text-muted)" }}
-            >
-              <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-              Mumbai, Maharashtra
-            </motion.p>
-
-            {/* Bio */}
-            <motion.p
-              {...up(0.19)}
-              className="text-base leading-relaxed mb-8 max-w-[480px]"
-              style={{ color: "var(--text-muted)" }}
-            >
-              Building end-to-end data science solutions — from raw data exploration
-              to deployed ML systems. Currently pursuing B.Sc. IT at D.G. Ruparel
-              College with a 8.60 CGPA.
-            </motion.p>
-
-            {/* CTAs */}
-            <motion.div {...up(0.24)} className="flex flex-wrap gap-3 mb-8">
-              <button onClick={() => go("projects")} className="btn-primary">
-                View Projects <ArrowRight className="w-4 h-4" />
-              </button>
-              <a
-                href="/Rajguru_Resume.pdf"
-                download="Rajguru_Resume.pdf"
-                className="btn-secondary"
-              >
-                <Download className="w-4 h-4" /> Resume
+          <m.div {...group(0.08, 0.7)} className="mt-9 flex flex-wrap items-center gap-3">
+            <m.div {...item}>
+              <Link to="/#work" className="btn-primary">
+                Explore selected work
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </m.div>
+            <m.div {...item}>
+              <a href={links.resume} download="Rajguru_Mathiyalagan_Resume.pdf" className="btn-secondary">
+                <Download className="h-4 w-4" aria-hidden="true" />
+                Download resume
+                <span className="sr-only">(PDF)</span>
               </a>
-              <button onClick={() => go("contact")} className="btn-secondary">
-                Contact Me
-              </button>
-            </motion.div>
+            </m.div>
+          </m.div>
 
-            {/* Social icons */}
-            <motion.div {...up(0.29)} className="flex items-center gap-2">
-              {[
-                { href: "https://github.com/RajguruDs", icon: Github, label: "GitHub" },
-                { href: "https://linkedin.com/in/rajguru-mathiyalagan-63b921244", icon: Linkedin, label: "LinkedIn" },
-                { href: "mailto:rajguru21.ds@gmail.com", icon: Mail, label: "Email" },
-              ].map(({ href, icon: Icon, label }) => (
-                <a
-                  key={href}
-                  href={href}
-                  target={href.startsWith("http") ? "_blank" : undefined}
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className="icon-btn"
-                >
-                  <Icon className="w-4 h-4" />
-                </a>
-              ))}
-            </motion.div>
-          </div>
-
-          {/* ── Right: Stats grid ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            className="grid grid-cols-2 gap-3"
-          >
-            {stats.map(({ value, label, sub }, i) => (
-              <motion.div
-                key={label}
-                className="stat-card"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 + i * 0.08 }}
-              >
-                <p
-                  className="text-3xl font-extrabold tracking-tight mb-0.5 text-accent-gradient"
-                >
-                  {value}
-                </p>
-                <p className="text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
-                  {label}
-                </p>
-                <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>
-                  {sub}
-                </p>
-              </motion.div>
-            ))}
-
-            {/* Tech stack mini strip */}
-            <div
-              className="col-span-2 rounded-xl p-4"
-              style={{ background: "var(--bg-subtle)", border: "1px solid var(--border)" }}
-            >
-              <p className="text-xs font-semibold mb-2.5" style={{ color: "var(--text-muted)" }}>
-                TECH STACK
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {["Python", "SQL", "Pandas", "Scikit-learn", "XGBoost", "Flask", "React", "Tableau"].map((t) => (
-                  <span key={t} className="tag text-[11px]">{t}</span>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
+          <m.ul {...group(0.06, 0.85)} className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm" aria-label="Profiles">
+            <m.li {...item}>
+              <a href={links.github} target="_blank" rel="noopener noreferrer" className={`action-link ${linkLift}`}>
+                <Github className="h-4 w-4" aria-hidden="true" />
+                GitHub
+                <span className="sr-only">(opens in a new tab)</span>
+              </a>
+            </m.li>
+            <m.li {...item}>
+              <a href={links.linkedin} target="_blank" rel="noopener noreferrer" className={`action-link ${linkLift}`}>
+                <Linkedin className="h-4 w-4" aria-hidden="true" />
+                LinkedIn
+                <span className="sr-only">(opens in a new tab)</span>
+              </a>
+            </m.li>
+            <m.li {...item}>
+              <a href={links.email} className={`action-link ${linkLift}`}>
+                {profile.email}
+              </a>
+            </m.li>
+          </m.ul>
         </div>
+
+        {/* Portrait: the card rises and scales in, the image unveils upward, and the border settles from ink-blue to the warm rule. */}
+        <m.figure
+          {...(reduce
+            ? {}
+            : {
+                initial: { opacity: 0, y: 48, scale: 0.96 },
+                animate: { opacity: 1, y: 0, scale: 1 },
+                transition: { duration: 1.0, delay: 0.3, ease: EASE_OUT_EXPO },
+              })}
+          className="w-full max-w-[20rem] justify-self-start sm:max-w-[22rem] lg:max-w-[26.5rem] lg:justify-self-end"
+        >
+          <TiltCard>
+            <m.div
+              {...(reduce
+                ? {}
+                : {
+                    initial: { borderColor: ACCENT },
+                    animate: { borderColor: RULE },
+                    transition: { duration: 0.8, delay: 0.7, ease: "easeOut" },
+                  })}
+              className="rounded-md border border-rule bg-surface p-2 transition-shadow duration-300 group-hover/tilt:shadow-[0_22px_44px_-26px_rgba(22,24,29,0.42)]"
+            >
+              <m.img
+                {...(reduce
+                  ? {}
+                  : {
+                      initial: { clipPath: "inset(100% 0% 0% 0%)" },
+                      animate: { clipPath: "inset(0% 0% 0% 0%)" },
+                      transition: { duration: 1.0, delay: 0.4, ease: EASE_OUT_EXPO },
+                    })}
+                src={avatar.src}
+                srcSet={avatar.srcSet}
+                sizes="(min-width: 1024px) 424px, (min-width: 640px) 352px, 320px"
+                width={avatar.width}
+                height={avatar.height}
+                alt={avatar.alt}
+                loading="eager"
+                decoding="async"
+                className="block h-auto w-full rounded-sm object-contain"
+              />
+            </m.div>
+          </TiltCard>
+        </m.figure>
       </div>
     </section>
   );

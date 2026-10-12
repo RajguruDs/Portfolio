@@ -1,23 +1,41 @@
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
+import { projects } from "@/content/projects";
+import { usePageMeta } from "@/lib/usePageMeta";
 
 const NotFound = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
-  }, [location.pathname]);
+  const { pathname } = useLocation();
+  usePageMeta("Page not found", "This page doesn't exist. Find Rajguru Mathiyalagan's case studies and contact details here.");
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">404</h1>
-        <p className="mb-4 text-xl text-gray-600">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 underline hover:text-blue-700">
-          Return to Home
-        </a>
+    <section aria-labelledby="nf-title" className="page py-24 md:py-32">
+      <p className="eyebrow mb-5">404 · Not found</p>
+      <h1 id="nf-title" className="display max-w-3xl">
+        There's nothing at this address.
+      </h1>
+      <p className="lede mt-6 max-w-prose">
+        <code className="code break-all">{pathname}</code> doesn't match any page. It may have moved, or the link may
+        have a typo.
+      </p>
+      <div className="mt-10 flex flex-wrap gap-3">
+        <Link to="/" className="btn-primary">
+          Go to the home page
+        </Link>
+        <Link to="/#work" className="btn-secondary">
+          See selected work
+        </Link>
       </div>
-    </div>
+      <ul className="mt-14 max-w-prose border-b border-rule">
+        {projects.map((p) => (
+          <li key={p.slug}>
+            <Link to={p.path} className="group flex min-h-[56px] items-center justify-between border-t border-rule text-ink hover:text-accent">
+              {p.title}
+              <ArrowRight className="h-4 w-4 text-ink-3 group-hover:text-accent" aria-hidden="true" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 };
 

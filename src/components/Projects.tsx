@@ -1,327 +1,173 @@
-import { Github, ExternalLink, ArrowUpRight, Zap, CheckCircle2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { AnimatePresence, m } from "framer-motion";
+import Section from "@/components/Section";
+import { RevealGroup, RevealItem } from "@/components/Reveal";
+import { categories, projects, type Category, type ProjectSummary } from "@/content/projects";
+import { links } from "@/content/site";
+import { cn } from "@/lib/utils";
+import { usePrefersReducedMotion } from "@/lib/motion";
 
-/* ─── Data ─────────────────────────────────────────────────── */
-const projects = [
-  {
-    num: "01",
-    featured: true,
-    color: "#2563EB",
-    grad: "linear-gradient(135deg,#2563EB 0%,#0D9488 100%)",
-    tint: "#EFF6FF",
-    border: "#BFDBFE",
-    badge: "Full-Stack UAV Performance Prediction Platform",
-    title: "PropVision",
-    subtitle: "End-to-End ML · Large-Scale Data · Full-Stack Deployment",
-    description:
-      "Engineered an end-to-end ML system to predict UAV propeller thrust, power, and efficiency. Physics-informed feature engineering, advanced ensemble modeling, and production deployment via REST API.",
-    stats: [
-      { v: "90%", l: "Accuracy" },
-      { v: "1.6M", l: "Records" },
-      { v: "REST", l: "API" },
-    ],
-    highlights: [
-      "1.6M-Record ML Pipeline: End-to-end system predicting UAV propeller thrust, power, and efficiency across 1.6 million experimental records.",
-      "Physics-Informed Feature Engineering: Numerical integration for Blade Area & Solidity aerodynamic features, improving model generalization.",
-      "Advanced Modeling (90% Accuracy): XGBoost, Gradient Boosting, Ensemble Learning with cross-validation and hyperparameter tuning.",
-      "Production Deployment via REST API: React.js frontend + Flask REST API + PostgreSQL, Tableau dashboard, and Drone Type Recommender.",
-    ],
-    tags: ["XGBoost", "Flask", "React.js", "PostgreSQL", "Tableau", "Ensemble", "Python"],
-    github: "https://github.com/RajguruDs/UAV-Propeller-ml-project",
-    demo: "https://uav-propeller-ml-project.vercel.app/",
-  },
-  {
-    num: "02",
-    featured: false,
-    color: "#7C3AED",
-    grad: "linear-gradient(135deg,#7C3AED 0%,#EC4899 100%)",
-    tint: "#F5F3FF",
-    border: "#DDD6FE",
-    badge: "HR Analytics · Classification",
-    title: "Employee Turnover Analysis",
-    subtitle: "ML-Powered Attrition Prediction",
-    description:
-      "Classification pipeline predicting employee attrition with 90% accuracy and 0.90 ROC-AUC. SMOTE for imbalance, K-Means behavioral clustering, and feature importance-driven retention insights.",
-    stats: [
-      { v: "90%", l: "Accuracy" },
-      { v: "0.90", l: "ROC-AUC" },
-      { v: "14K+", l: "Records" },
-    ],
-    highlights: [
-      "Random Forest + Logistic Regression + k-fold CV",
-      "SMOTE to correct class imbalance",
-      "K-Means behavioral segmentation",
-      "Feature importance → retention recommendations",
-    ],
-    tags: ["Random Forest", "Logistic Regression", "SMOTE", "K-Means", "Python"],
-    github: "https://github.com/RajguruDs/Employee-Turnover-Analysis-using-Machine-Learning",
-    demo: null,
-  },
-];
+type Filter = "All" | Category;
+const filters: Filter[] = ["All", ...categories];
 
-/* ─── Browser window mockup ─────────────────────────────────── */
-const BrowserMock = ({ p }: { p: typeof projects[0] }) => (
-  <div
-    className="rounded-2xl overflow-hidden w-full"
-    style={{
-      border: `1px solid ${p.border}`,
-      boxShadow: `0 8px 32px ${p.color}18, 0 2px 8px rgba(17,24,39,0.08)`,
-      background: "#FFFFFF",
-    }}
-  >
-    {/* Browser chrome */}
-    <div
-      className="flex items-center gap-2 px-4 py-3"
-      style={{ background: p.tint, borderBottom: `1px solid ${p.border}` }}
-    >
-      <div className="flex gap-1.5">
-        {["#FC5F57", "#FEBD2E", "#27C840"].map((c) => (
-          <div key={c} className="w-3 h-3 rounded-full" style={{ background: c }} />
-        ))}
-      </div>
-      <div
-        className="flex-1 mx-3 h-6 rounded-md flex items-center px-3 text-[11px] font-mono"
-        style={{ background: "rgba(255,255,255,0.75)", color: "#6B7280" }}
-      >
-        {p.demo ?? "github.com / " + p.title.toLowerCase().replace(" ", "-")}
-      </div>
-      <div
-        className="text-xs font-semibold px-2 py-0.5 rounded-full"
-        style={{ background: p.color, color: "#fff" }}
-      >
-        Live
-      </div>
-    </div>
+// Hovering (or keyboard-focusing) anywhere in a row lifts its thumbnail, zooms the image and highlights the title.
+const thumbFrame =
+  "block overflow-hidden rounded-md border border-rule bg-paper shadow-[0_1px_2px_rgba(22,24,29,0.04)] transition-[transform,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/card:border-rule-strong group-hover/card:shadow-[0_24px_48px_-28px_rgba(22,24,29,0.45)] group-focus-within/card:border-rule-strong motion-safe:group-hover/card:-translate-y-1 motion-safe:group-focus-within/card:-translate-y-1";
+const thumbImage =
+  "aspect-[16/10] w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] motion-safe:group-hover/card:scale-[1.04]";
 
-    {/* Dashboard content */}
-    {p.num === "01" ? <PropVisionUI color={p.color} tint={p.tint} border={p.border} /> : <AttritionUI color={p.color} tint={p.tint} border={p.border} />}
-  </div>
-);
+const ProjectRow = ({ project, index }: { project: ProjectSummary; index: number }) => (
+  <article aria-labelledby={`project-${project.slug}`} className="group/card border-t border-rule">
+    <RevealGroup step={0.09} className="grid gap-6 py-10 md:grid-cols-[3rem_minmax(0,1.6fr)_minmax(0,1fr)] md:gap-10">
+      <RevealItem className="font-mono text-sm text-ink-3">
+        <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+      </RevealItem>
 
-const PropVisionUI = ({ color, tint, border }: { color: string; tint: string; border: string }) => (
-  <div className="p-4 space-y-3" style={{ background: "#FAFCFF", minHeight: "220px" }}>
-    {/* Metric row */}
-    <div className="grid grid-cols-3 gap-2">
-      {[{ v: "90%", l: "Accuracy" }, { v: "1.6M", l: "Records" }, { v: "5x", l: "Speed" }].map((m) => (
-        <div key={m.l} className="rounded-xl p-3 text-center" style={{ background: tint, border: `1px solid ${border}` }}>
-          <p className="text-xl font-extrabold" style={{ color }}>{m.v}</p>
-          <p className="text-[10px] text-gray-400 mt-0.5">{m.l}</p>
-        </div>
-      ))}
-    </div>
-    {/* Chart */}
-    <div className="rounded-xl p-3" style={{ background: "#fff", border: `1px solid ${border}` }}>
-      <p className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wide">Thrust vs RPM</p>
-      <div className="flex items-end gap-1 h-16">
-        {[45, 60, 52, 80, 68, 90, 74, 95, 82, 88, 76, 92].map((h, i) => (
-          <div key={i} className="flex-1 rounded-sm" style={{ height: `${h}%`, background: color, opacity: 0.18 + i * 0.06 }} />
-        ))}
-      </div>
-    </div>
-    {/* Mini status bar */}
-    <div className="flex items-center gap-2">
-      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-      <span className="text-[10px] text-gray-400 font-medium">Model active · Last prediction 2s ago</span>
-    </div>
-  </div>
-);
-
-const AttritionUI = ({ color, tint, border }: { color: string; tint: string; border: string }) => (
-  <div className="p-4 space-y-3" style={{ background: "#FDFAFF", minHeight: "220px" }}>
-    <div className="grid grid-cols-2 gap-2">
-      <div className="rounded-xl p-3" style={{ background: tint, border: `1px solid ${border}` }}>
-        <p className="text-[10px] text-gray-400 mb-1">Attrition Rate</p>
-        <div className="h-1.5 rounded-full mb-1" style={{ background: "#E5E7EB" }}>
-          <div className="h-full w-[16%] rounded-full" style={{ background: color }} />
-        </div>
-        <p className="text-lg font-extrabold" style={{ color }}>16.1%</p>
-      </div>
-      <div className="rounded-xl p-3" style={{ background: tint, border: `1px solid ${border}` }}>
-        <p className="text-[10px] text-gray-400 mb-1">ROC-AUC</p>
-        <p className="text-2xl font-extrabold" style={{ color }}>0.90</p>
-      </div>
-    </div>
-    <div className="rounded-xl p-3" style={{ background: "#fff", border: `1px solid ${border}` }}>
-      <p className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wide">Feature Importance</p>
-      {[["OverTime", 88], ["MonthlyIncome", 72], ["Age", 58], ["JobLevel", 44]].map(([f, w]) => (
-        <div key={f} className="flex items-center gap-2 mb-1.5">
-          <span className="text-[9px] w-24 text-gray-400 shrink-0">{f}</span>
-          <div className="flex-1 h-1.5 rounded-full" style={{ background: "#E5E7EB" }}>
-            <div className="h-full rounded-full" style={{ width: `${w}%`, background: color, opacity: 0.75 }} />
-          </div>
-          <span className="text-[9px] text-gray-400">{w}%</span>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-/* ─── Section ───────────────────────────────────────────────── */
-const Projects = () => (
-  <section
-    id="projects"
-    className="py-12 md:py-16 px-6 sm:px-10 scroll-mt-16"
-    style={{ background: "var(--bg-page)" }}
-  >
-    <div className="max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="section-label">Featured Projects</div>
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-12">
-        <h2
-          className="text-3xl sm:text-4xl font-extrabold tracking-tight"
-          style={{ color: "var(--text-primary)" }}
+      <RevealItem>
+        <p className="eyebrow mb-3">{project.kind}</p>
+        <h3
+          id={`project-${project.slug}`}
+          className="font-serif text-[1.875rem] leading-tight tracking-[-0.015em] text-ink"
         >
-          Things I've built
-        </h2>
-        <a
-          href="https://github.com/RajguruDs"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-ghost self-start sm:self-auto"
-        >
-          <Github className="w-3.5 h-3.5" />
-          All on GitHub
-          <ArrowUpRight className="w-3 h-3" />
-        </a>
-      </div>
-
-      {/* Project cards */}
-      <div className="space-y-6">
-        {projects.map((p, i) => (
-          <motion.article
-            key={i}
-            initial={{ opacity: 0, y: 28 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-            className="group relative overflow-hidden"
-            style={{
-              background: "#FFFFFF",
-              border: `1px solid ${p.border}`,
-              borderRadius: "20px",
-              boxShadow: "0 2px 8px rgba(17,24,39,0.05)",
-              transition: "box-shadow 0.3s ease, transform 0.3s ease",
-            }}
-            whileHover={{ y: -4, boxShadow: `0 20px 48px ${p.color}12, 0 4px 12px rgba(17,24,39,0.07)` }}
+          <Link
+            to={project.path}
+            className="transition-colors duration-300 hover:text-accent group-hover/card:text-accent"
           >
-            {/* Top gradient bar */}
-            <div className="h-[3px]" style={{ background: p.grad }} />
-
-            {/* Decorative large number */}
-            <div
-              className="absolute top-4 right-8 text-[120px] font-black leading-none select-none pointer-events-none"
-              style={{ color: `${p.color}06` }}
+            {project.title}
+          </Link>
+        </h3>
+        <p className="mt-3 text-[1.0625rem] leading-relaxed text-ink">{project.problem}</p>
+        <p className="mt-3 text-[0.9375rem] leading-relaxed text-ink-2">
+          <span className="font-medium text-ink">What I did: </span>
+          {project.contribution}
+        </p>
+        <ul className="mt-5 flex flex-wrap gap-1.5" aria-label="Tools">
+          {project.tools.map((t) => (
+            <li key={t} className="tag">
+              {t}
+            </li>
+          ))}
+        </ul>
+        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <Link to={project.path} className="action-link">
+            Read the case study
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">: {project.title}</span>
+          </Link>
+          {project.links.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="action-link text-ink-2 hover:text-ink"
             >
-              {p.num}
-            </div>
+              {l.label}
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="sr-only">for {project.title} (opens in a new tab)</span>
+            </a>
+          ))}
+        </div>
+      </RevealItem>
 
-            <div className="p-6 sm:p-8 grid lg:grid-cols-[1fr_420px] gap-8 xl:gap-12 items-start relative z-10">
-              {/* ── Left ── */}
-              <div className="flex flex-col h-full">
-                {/* Badges */}
-                <div className="flex flex-wrap items-center gap-2 mb-5">
-                  {p.featured && (
-                    <span
-                      className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full"
-                      style={{ background: p.tint, color: p.color, border: `1px solid ${p.border}` }}
-                    >
-                      <Zap className="w-3 h-3" /> Featured
-                    </span>
-                  )}
-                  <span
-                    className="text-xs font-medium px-2.5 py-1 rounded-full"
-                    style={{ background: "var(--bg-subtle)", color: "var(--text-muted)", border: "1px solid var(--border)" }}
-                  >
-                    {p.badge.includes("·") ? p.badge.split("·").slice(-1)[0].trim() : p.badge}
-                  </span>
-                </div>
-
-                {/* Title */}
-                <h3
-                  className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight mb-1"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  {p.title}
-                </h3>
-                <p className="text-sm font-semibold mb-4" style={{ color: p.color }}>
-                  {p.subtitle}
-                </p>
-                <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--text-muted)" }}>
-                  {p.description}
-                </p>
-
-                {/* Highlights */}
-                <div className="space-y-2 mb-6">
-                  {p.highlights.map((h) => (
-                    <div key={h} className="flex gap-2.5 items-start">
-                      <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: p.color }} />
-                      <span className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{h}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Tags */}
-                <div className="flex flex-wrap gap-1.5 mb-6">
-                  {p.tags.map((t) => (
-                    <span
-                      key={t}
-                      className="text-xs font-medium px-2.5 py-1 rounded-full"
-                      style={{ background: p.tint, color: p.color, border: `1px solid ${p.border}` }}
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Stats row */}
-                <div className="flex gap-4 mb-6 pb-6" style={{ borderBottom: "1px solid var(--border)" }}>
-                  {p.stats.map(({ v, l }) => (
-                    <div key={l}>
-                      <p className="text-xl font-extrabold" style={{ color: p.color }}>{v}</p>
-                      <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--text-faint)" }}>{l}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Action buttons — pushed to bottom */}
-                <div className="flex flex-wrap gap-2.5 mt-auto">
-                  <a
-                    href={p.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-ghost"
-                  >
-                    <Github className="w-3.5 h-3.5" /> View Code
-                  </a>
-                  {p.demo && (
-                    <a
-                      href={p.demo}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-primary"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" /> Live Demo
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              {/* ── Right: Browser mockup ── */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.97 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.15 + i * 0.1 }}
-                className="hidden lg:block"
-              >
-                <BrowserMock p={p} />
-              </motion.div>
-            </div>
-          </motion.article>
-        ))}
-      </div>
-    </div>
-  </section>
+      <RevealItem className="space-y-6">
+        <Link to={project.path} tabIndex={-1} className={thumbFrame}>
+          <img
+            src={project.thumb.src}
+            alt={project.thumb.alt}
+            width={project.thumb.width}
+            height={project.thumb.height}
+            loading="lazy"
+            decoding="async"
+            className={thumbImage}
+          />
+        </Link>
+        <ul className="grid content-start gap-5 sm:grid-cols-2 md:grid-cols-1" aria-label="Outcomes">
+          {project.outcomes.map((o) => (
+            <li key={o.label} className="border-l border-rule-strong pl-4">
+              <span className="block font-mono text-2xl tabular-nums tracking-tight text-ink">{o.value}</span>
+              <span className="mt-1 block text-sm leading-snug text-ink-3">{o.label}</span>
+            </li>
+          ))}
+        </ul>
+      </RevealItem>
+    </RevealGroup>
+  </article>
 );
+
+const Projects = () => {
+  const [filter, setFilter] = useState<Filter>("All");
+  const reduce = usePrefersReducedMotion();
+  const visible = useMemo(
+    () => (filter === "All" ? projects : projects.filter((p) => p.categories.includes(filter))),
+    [filter],
+  );
+
+  return (
+    <Section
+      id="work"
+      eyebrow="Selected work"
+      title="Three projects, documented end to end."
+      intro={
+        <>
+          Each case study covers the data, the method, the measured results and their limits. More is on{" "}
+          <a href={links.github} target="_blank" rel="noopener noreferrer" className="link">
+            GitHub
+          </a>
+          .
+        </>
+      }
+    >
+      <div role="group" aria-label="Filter projects by area" className="mb-2 flex flex-wrap gap-2">
+        {filters.map((f) => {
+          const selected = filter === f;
+          return (
+            <button
+              key={f}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => setFilter(f)}
+              className={cn(
+                "inline-flex min-h-[40px] items-center rounded-full border px-4 text-sm transition-[background-color,border-color,color,transform] duration-200 motion-safe:active:scale-[0.97]",
+                selected
+                  ? "border-ink bg-ink text-white"
+                  : "border-rule-strong bg-surface text-ink-2 hover:border-ink-3 hover:text-ink",
+              )}
+            >
+              {f === "All" ? "All Projects" : f}
+            </button>
+          );
+        })}
+      </div>
+      <p className="sr-only" aria-live="polite">
+        Showing {visible.length} {visible.length === 1 ? "project" : "projects"}
+        {filter === "All" ? "" : ` in ${filter}`}.
+      </p>
+
+      {/* Changing the filter cross-fades the list; the incoming rows then rise in with their usual stagger. */}
+      <AnimatePresence mode="wait" initial={false}>
+        <m.div
+          key={filter}
+          className="mt-6 border-b border-rule"
+          {...(reduce
+            ? {}
+            : {
+                initial: { opacity: 0 },
+                animate: { opacity: 1, transition: { duration: 0.25 } },
+                exit: { opacity: 0, transition: { duration: 0.15 } },
+              })}
+        >
+          {visible.length > 0 ? (
+            visible.map((p) => <ProjectRow key={p.slug} project={p} index={projects.indexOf(p)} />)
+          ) : (
+            <p className="border-t border-rule py-10 text-ink-3">No projects in this area yet.</p>
+          )}
+        </m.div>
+      </AnimatePresence>
+    </Section>
+  );
+};
 
 export default Projects;

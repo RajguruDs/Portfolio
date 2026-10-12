@@ -1,27 +1,33 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { LazyMotion, MotionConfig, domAnimation } from "framer-motion";
+import Layout from "@/components/layout/Layout";
 import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+// Case studies are split into their own chunks so the home page stays light.
+const PropVision = lazy(() => import("./pages/work/PropVision"));
+const Attrition = lazy(() => import("./pages/work/Attrition"));
+const MarketingCampaign = lazy(() => import("./pages/work/MarketingCampaign"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
+  <MotionConfig reducedMotion="user">
+    <LazyMotion features={domAnimation} strict>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Layout>
+          <Suspense fallback={<div className="min-h-[60vh]" aria-hidden="true" />}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/work/propvision" element={<PropVision />} />
+              <Route path="/work/attrition" element={<Attrition />} />
+              <Route path="/work/marketing-campaign-analysis" element={<MarketingCampaign />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </Layout>
       </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+    </LazyMotion>
+  </MotionConfig>
 );
 
 export default App;
