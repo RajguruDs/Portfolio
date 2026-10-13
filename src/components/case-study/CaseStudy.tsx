@@ -63,7 +63,7 @@ export const CaseStudy = ({ project, cover, metaDescription, lede, facts, toc, c
             <RevealItem>
               <ul className="mt-8 flex flex-wrap gap-3" aria-label="Project links">
                 {project.links.map((l) => (
-                  <li key={l.href}>
+                  <li key={l.href} data-magnetic>
                     <a
                       href={l.href}
                       target="_blank"

@@ -18,12 +18,16 @@ const NotFound = () => {
         have a typo.
       </p>
       <div className="mt-10 flex flex-wrap gap-3">
-        <Link to="/" className="btn-primary">
-          Go to the home page
-        </Link>
-        <Link to="/#work" className="btn-secondary">
-          See selected work
-        </Link>
+        <span data-magnetic className="inline-block">
+          <Link to="/" className="btn-primary">
+            Go to the home page
+          </Link>
+        </span>
+        <span data-magnetic className="inline-block">
+          <Link to="/#work" className="btn-secondary">
+            See selected work
+          </Link>
+        </span>
       </div>
       <ul className="mt-14 max-w-prose border-b border-rule">
         {projects.map((p) => (

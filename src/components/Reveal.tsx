@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { m } from "framer-motion";
-import { EASE_OUT_EXPO, REVEAL_VIEWPORT, rise, stagger, usePrefersReducedMotion } from "@/lib/motion";
+import { cn } from "@/lib/utils";
+import { EASE_OUT_EXPO, REVEAL, REVEAL_VIEWPORT, rise, stagger, usePrefersReducedMotion } from "@/lib/motion";
 
 type RevealProps = { children: ReactNode; className?: string; delay?: number };
 
@@ -15,10 +16,10 @@ const Reveal = ({ children, className, delay = 0 }: RevealProps) => {
   return (
     <m.div
       className={className}
-      initial={{ opacity: 0, y: 28 }}
+      initial={{ opacity: 0, y: REVEAL.y }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={REVEAL_VIEWPORT}
-      transition={{ duration: 0.8, delay, ease: EASE_OUT_EXPO }}
+      transition={{ duration: REVEAL.duration, delay, ease: EASE_OUT_EXPO }}
     >
       {children}
     </m.div>
@@ -89,6 +90,26 @@ export const RevealItem = ({
     <m.div className={className} variants={rise}>
       {children}
     </m.div>
+  );
+};
+
+/**
+ * A thin horizontal rule that draws in from the left the first time it scrolls into view. Decorative only;
+ * with reduced motion it is simply there.
+ */
+export const RevealRule = ({ className }: { className?: string }) => {
+  const reduce = usePrefersReducedMotion();
+  const base = cn("h-px origin-left bg-rule", className);
+  if (reduce) return <div aria-hidden="true" className={base} />;
+  return (
+    <m.div
+      aria-hidden="true"
+      className={base}
+      initial={{ scaleX: 0 }}
+      whileInView={{ scaleX: 1 }}
+      viewport={REVEAL_VIEWPORT}
+      transition={{ duration: 1.1, ease: EASE_OUT_EXPO }}
+    />
   );
 };
 

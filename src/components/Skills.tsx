@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowUpRight, BarChart3, BookOpen, BrainCircuit, Database, Wrench, type LucideIcon } from "lucide-react";
 import Section from "@/components/Section";
 import Reveal, { RevealGroup, RevealItem } from "@/components/Reveal";
+import { RHYTHM } from "@/lib/motion";
 import { additionalKnowledge, skillGroups, type SkillGroup } from "@/content/profile";
 import { projects } from "@/content/projects";
 
@@ -25,7 +26,7 @@ const SkillCard = ({ group, index }: { group: SkillGroup; index: number }) => {
   return (
     <article
       aria-labelledby={id}
-      className="group/skill flex h-full flex-col rounded-md border border-rule bg-surface p-6 transition-[border-color,box-shadow,transform] duration-300 ease-out hover:border-rule-strong hover:shadow-[0_18px_40px_-30px_rgba(22,24,29,0.4)] motion-safe:hover:-translate-y-0.5 sm:p-7"
+      className="spotlight group/skill flex h-full flex-col rounded-md border border-rule bg-surface p-6 transition-[border-color,box-shadow,transform] duration-300 ease-out hover:border-rule-strong hover:shadow-[0_18px_40px_-30px_rgba(22,24,29,0.4)] motion-safe:hover:-translate-y-0.5 sm:p-7"
     >
       <header className="flex items-start justify-between gap-4">
         <span className="inline-flex h-10 w-10 items-center justify-center rounded border border-rule bg-sunken text-ink-2 transition-colors duration-300 group-hover/skill:text-accent">
@@ -42,7 +43,7 @@ const SkillCard = ({ group, index }: { group: SkillGroup; index: number }) => {
       <p className="mt-2 text-[0.9375rem] leading-relaxed text-ink-3">{group.summary}</p>
 
       {/* Tools as tiles: short code (e.g. the usual import alias) above the full name. */}
-      <ul className="mt-6 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-3 xl:grid-cols-4" aria-label={`${group.title}: tools`}>
+      <ul className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(5.5rem,1fr))] gap-2 sm:grid-cols-4 md:grid-cols-3 xl:grid-cols-4" aria-label={`${group.title}: tools`}>
         {group.tools.map((t) => (
           <li
             key={t.name}
@@ -116,9 +117,9 @@ const Skills = () => (
     title="Skills & Technologies"
     intro="Four areas of hands-on work, each linked to the projects where it's used. Knowledge from coursework and training is listed separately below."
   >
-    <RevealGroup step={0.08} className="grid gap-4 md:grid-cols-2 md:gap-5">
+    <RevealGroup step={RHYTHM.skills} className="grid gap-4 md:grid-cols-2 md:gap-5">
       {skillGroups.map((g, i) => (
-        <RevealItem key={g.title} className="h-full">
+        <RevealItem key={g.title} className="h-full min-w-0">
           <SkillCard group={g} index={i} />
         </RevealItem>
       ))}

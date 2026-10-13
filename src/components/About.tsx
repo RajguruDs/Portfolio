@@ -1,6 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import Section from "@/components/Section";
 import Reveal, { RevealGroup, RevealItem } from "@/components/Reveal";
+import { RHYTHM } from "@/lib/motion";
 import { credentials, education, type Credential } from "@/content/profile";
 
 // Certificates grouped by kind, in this order.
@@ -61,7 +62,7 @@ const About = () => (
           <h3 id="about-education" className="eyebrow mb-4">
             Education
           </h3>
-          <RevealGroup step={0.08} className="border-t border-rule pt-5">
+          <RevealGroup step={RHYTHM.about} className="border-t border-rule pt-5">
             <RevealItem>
               <p className="font-serif text-[1.75rem] leading-tight tracking-[-0.01em] text-ink">{education.degree}</p>
               <p className="mt-1 text-ink-2">{education.institution}</p>
@@ -114,7 +115,7 @@ const About = () => (
                   <p className="text-sm font-medium text-ink-2">
                     {g.heading} <span className="font-mono text-xs tabular-nums text-ink-3">({items.length})</span>
                   </p>
-                  <RevealGroup as="ul" step={0.08} className="mt-1" aria-label={g.heading}>
+                  <RevealGroup as="ul" step={RHYTHM.about} className="mt-1" aria-label={g.heading}>
                     {items.map((c) => (
                       <CredentialRow key={c.title} c={c} />
                     ))}

@@ -2,6 +2,8 @@ import type { Config } from "tailwindcss";
 
 // Colour values live as CSS variables in src/index.css so the palette has one source of truth.
 export default {
+  // `hover:` only applies on devices that can hover, so a tap on a phone never leaves a card "stuck" lifted.
+  future: { hoverOnlyWhenSupported: true },
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {

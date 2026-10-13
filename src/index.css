@@ -87,6 +87,202 @@
   }
 }
 
+/* ─── Pointer effects (src/components/PointerEffects.tsx). Only active with a fine pointer and motion allowed. ─── */
+html.has-custom-cursor,
+html.has-custom-cursor * {
+  cursor: none;
+}
+/* Native cursor wherever the custom one could reduce clarity: text entry, embeds, open dialogs. */
+html.has-custom-cursor :is(input, textarea, select, [contenteditable="true"]) {
+  cursor: text;
+}
+html.has-custom-cursor :is(select, input[type="checkbox"], input[type="radio"], input[type="submit"]),
+html.has-custom-cursor :is(iframe, dialog[open], dialog[open] *) {
+  cursor: auto;
+}
+html.has-custom-cursor :is(button:disabled, button:disabled *) {
+  cursor: not-allowed;
+}
+
+.pointer-cursor {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+.pointer-cursor__pos {
+  position: fixed;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+.pointer-cursor__dot,
+.pointer-cursor__ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 9999px;
+  transition:
+    opacity 200ms ease-out,
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 300ms ease-out,
+    border-color 300ms ease-out;
+}
+.pointer-cursor__dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: var(--accent);
+}
+.pointer-cursor__ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
+  border: 1px solid var(--accent-line);
+}
+.pointer-cursor__label {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 5px; /* ×2.25 when the ring expands ≈ 11px */
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+.pointer-cursor[data-mode="hidden"] :is(.pointer-cursor__dot, .pointer-cursor__ring) {
+  opacity: 0;
+}
+.pointer-cursor[data-mode="interactive"] .pointer-cursor__ring {
+  transform: scale(1.35);
+  border-color: var(--accent);
+}
+.pointer-cursor[data-mode="view"] .pointer-cursor__ring {
+  transform: scale(2.25);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.pointer-cursor[data-mode="view"] .pointer-cursor__label {
+  opacity: 1;
+}
+.pointer-cursor[data-mode="view"] .pointer-cursor__dot {
+  opacity: 0;
+}
+
+/* Card spotlight: a faint ink-blue glow under the pointer, clipped to the card and only while it's hovered. */
+.spotlight {
+  position: relative;
+  isolation: isolate;
+}
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 400ms ease-out;
+  background: radial-gradient(
+    420px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    rgba(35, 62, 139, 0.055),
+    transparent 70%
+  );
+}
+html.has-custom-cursor .spotlight:hover::before {
+  opacity: 1;
+}
+
+/* ─── Hero portrait glow ───
+   A soft ink-blue light behind the portrait frame. At rest it sits slightly above centre; on desktop PointerEffects
+   moves --glow-x/--glow-y toward the pointer and the registered properties below let CSS ease every change. */
+@property --glow-x {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 50%;
+}
+@property --glow-y {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 42%;
+}
+.portrait-glow {
+  position: absolute;
+  inset: -2.25rem;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    55% 50% at var(--glow-x) var(--glow-y),
+    rgba(35, 62, 139, 0.18),
+    rgba(35, 62, 139, 0.06) 50%,
+    transparent 75%
+  );
+  /* The light may drift, but the box it lives in always fades out well before its edges (no visible rectangle). */
+  -webkit-mask-image: radial-gradient(closest-side, #000 55%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 55%, transparent 100%);
+  opacity: 0.75;
+  transition:
+    --glow-x 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    --glow-y 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 600ms ease-out;
+}
+.portrait-glow[data-active] {
+  opacity: 1;
+}
+
+/* Portrait entry, alongside the figure's .enter rise: the glow fades in, the frame settles from ink-blue to the rule.
+   `backwards` fill only holds the start state during the delay; afterwards normal styles (and transitions) apply. */
+@keyframes glow-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes frame-in {
+  from {
+    border-color: var(--accent-line);
+  }
+}
+.enter-glow {
+  animation: glow-in 1400ms ease-out 500ms backwards;
+}
+.enter-frame {
+  animation: frame-in 1300ms ease-out 350ms backwards;
+}
+
+/* Hero entrance. CSS keyframes rather than JS so it starts on the first paint even while the main thread is
+   still busy booting the app. Each element sets its own delay with --enter-delay; everything is visible by ~1s.
+   Reduced motion: no animation at all (not a shortened one), so nothing waits behind a delay. */
+@keyframes enter-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--enter-y, 12px), 0);
+  }
+}
+
+.enter {
+  animation: enter-rise var(--enter-duration, 700ms) cubic-bezier(0.16, 1, 0.3, 1) var(--enter-delay, 0ms) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter,
+  .enter-glow,
+  .enter-frame {
+    animation: none !important;
+  }
+}
+
+/* Printing (or a screenshot tool) shouldn't capture content an entrance animation hasn't revealed yet. */
+@media print {
+  [style*="opacity"] {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+}
+
 /* Lightbox dialog */
 .lightbox::backdrop {
   background: rgba(22, 24, 29, 0.62);
@@ -136,7 +332,7 @@
   /* Buttons */
   /* Buttons: colour change everywhere; a 2px lift and soft shadow only when motion is allowed. */
   .btn {
-    @apply inline-flex min-h-[44px] items-center justify-center gap-2 whitespace-nowrap rounded px-5 text-[0.9375rem] font-medium transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out motion-safe:hover:-translate-y-0.5 motion-safe:focus-visible:-translate-y-0.5 motion-safe:active:translate-y-0;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 whitespace-nowrap rounded px-5 text-[0.9375rem] font-medium transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out motion-safe:hover:-translate-y-0.5 motion-safe:focus-visible:-translate-y-0.5 motion-safe:active:translate-y-0 motion-safe:active:scale-[0.98] active:shadow-none;
   }
 
   .btn-primary {
@@ -154,7 +350,7 @@
 
   /* Small arrow link used for "Read case study", external links etc. */
   .action-link {
-    @apply inline-flex items-center gap-1.5 text-sm font-medium text-accent transition-colors hover:text-accent-hover [&>svg]:transition-transform [&>svg]:duration-200 motion-safe:hover:[&>svg]:translate-x-0.5;
+    @apply inline-flex min-h-6 items-center gap-1.5 text-sm font-medium text-accent transition-colors hover:text-accent-hover [&>svg]:transition-transform [&>svg]:duration-200 motion-safe:hover:[&>svg]:translate-x-0.5;
   }
 
   .tag {

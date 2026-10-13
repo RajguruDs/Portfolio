@@ -3,11 +3,11 @@ import { Link } from "react-router-dom";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { AnimatePresence, m } from "framer-motion";
 import Section from "@/components/Section";
-import { RevealGroup, RevealItem } from "@/components/Reveal";
+import { RevealGroup, RevealItem, RevealRule } from "@/components/Reveal";
 import { categories, projects, type Category, type ProjectSummary } from "@/content/projects";
 import { links } from "@/content/site";
 import { cn } from "@/lib/utils";
-import { usePrefersReducedMotion } from "@/lib/motion";
+import { RHYTHM, usePrefersReducedMotion } from "@/lib/motion";
 
 type Filter = "All" | Category;
 const filters: Filter[] = ["All", ...categories];
@@ -19,8 +19,10 @@ const thumbImage =
   "aspect-[16/10] w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] motion-safe:group-hover/card:scale-[1.04]";
 
 const ProjectRow = ({ project, index }: { project: ProjectSummary; index: number }) => (
-  <article aria-labelledby={`project-${project.slug}`} className="group/card border-t border-rule">
-    <RevealGroup step={0.09} className="grid gap-6 py-10 md:grid-cols-[3rem_minmax(0,1.6fr)_minmax(0,1fr)] md:gap-10">
+  // `spotlight`: faint glow under the pointer on desktop (index.css). The top rule draws in as the row appears.
+  <article aria-labelledby={`project-${project.slug}`} className="spotlight group/card">
+    <RevealRule />
+    <RevealGroup step={RHYTHM.projects} className="grid gap-6 py-10 md:grid-cols-[3rem_minmax(0,1.6fr)_minmax(0,1fr)] md:gap-10">
       <RevealItem className="font-mono text-sm text-ink-3">
         <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
       </RevealItem>
@@ -33,6 +35,7 @@ const ProjectRow = ({ project, index }: { project: ProjectSummary; index: number
         >
           <Link
             to={project.path}
+            data-cursor="view"
             className="transition-colors duration-300 hover:text-accent group-hover/card:text-accent"
           >
             {project.title}
@@ -73,17 +76,20 @@ const ProjectRow = ({ project, index }: { project: ProjectSummary; index: number
       </RevealItem>
 
       <RevealItem className="space-y-6">
-        <Link to={project.path} tabIndex={-1} className={thumbFrame}>
-          <img
-            src={project.thumb.src}
-            alt={project.thumb.alt}
-            width={project.thumb.width}
-            height={project.thumb.height}
-            loading="lazy"
-            decoding="async"
-            className={thumbImage}
-          />
-        </Link>
+        {/* Only the image tilts (≤ 3°, desktop pointer only); text and metrics stay still. */}
+        <div data-tilt>
+          <Link to={project.path} tabIndex={-1} data-cursor="view" className={thumbFrame}>
+            <img
+              src={project.thumb.src}
+              alt={project.thumb.alt}
+              width={project.thumb.width}
+              height={project.thumb.height}
+              loading="lazy"
+              decoding="async"
+              className={thumbImage}
+            />
+          </Link>
+        </div>
         <ul className="grid content-start gap-5 sm:grid-cols-2 md:grid-cols-1" aria-label="Outcomes">
           {project.outcomes.map((o) => (
             <li key={o.label} className="border-l border-rule-strong pl-4">

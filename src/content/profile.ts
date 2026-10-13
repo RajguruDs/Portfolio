@@ -57,35 +57,42 @@ export type Role = {
   /** Dates as confirmed by Rajguru. */
   period: string;
   context: string;
-  /** Each highlight has a short label for scanning and one sentence of detail. */
-  highlights: { lead: string; text: string }[];
+  /**
+   * Responsibility groups. `text` is the role's scope as written in the offer letter; `did` (optional) is only
+   * work evidenced in the repositories, so the scope is never presented as personally completed work.
+   */
+  highlights: { lead: string; text: string; did?: string }[];
   stack: string[];
 };
 
 export const experience: Role[] = [
   {
     organisation: "Roopsee",
-    title: "Intern",
+    title: "Junior AI/ML Data Analyst Intern",
     type: "Internship",
     period: "Sep 2026 – Oct 2026",
     context:
-      "Roopsee scores skincare products against a user's skin profile. I worked on the data and validation side of that scoring system.",
+      "The role spans data analysis, AI/ML support and web development. Roopsee scores skincare products against a user's skin profile; my hands-on work was on the data and validation side of that scoring system.",
     highlights: [
       {
-        lead: "Doctor-validation service",
-        text: "Built a Python and Flask service that lets a domain expert trace how the scoring engine scores an 87-product validation catalogue — from each raw ingredient name, through its reviewed mapping, to the final product score.",
+        lead: "Data Collection & Preparation",
+        text: "Collecting, cleaning and preparing data for analysis and AI/ML work.",
+        did: "Implemented auditable ingredient-name resolution for an 87-product validation catalogue — a fixed sequence of exclusion lists, reviewed mappings and exact or normalised matches, with no fuzzy matching — and worked on a canonical population of 4,037 products (one per GTIN).",
       },
       {
-        lead: "Auditable ingredient resolution",
-        text: "Implemented resolution as a fixed sequence of exclusion lists, reviewed mappings and exact or normalised matches, with no fuzzy matching. Every scoreable ingredient mention in the validation catalogue resolves.",
+        lead: "AI/ML & Data Analysis",
+        text: "Data analysis and basic AI/ML model development in support of the company's AI/ML initiatives.",
+        did: "My hands-on work here was on Roopsee's rule-based product-scoring system: tracing how each product's score is derived from its raw ingredient names.",
       },
       {
-        lead: "Automated testing",
-        text: "Wrote tests for the catalogue, scoring rules and API, plus an end-to-end check that requests all 87 products from the running service and verifies each one.",
+        lead: "Application & Database Development",
+        text: "Web application development across the frontend and backend, and database management for AI/ML projects.",
+        did: "Built a Python and Flask doctor-validation service that lets a domain expert trace each catalogue product from raw ingredient names, through the reviewed mapping, to its final score.",
       },
       {
-        lead: "Next scoring pipeline",
-        text: "Worked on a canonical population of 4,037 products (one per GTIN), covered by a pytest suite for GTIN handling, ingredient parsing and scoring invariants.",
+        lead: "Testing, Dashboards & Deployment",
+        text: "Testing, debugging and deploying AI/ML and web solutions, and building dashboards that support data-driven decisions.",
+        did: "Wrote tests for the catalogue, scoring rules and API, plus an end-to-end check that requests all 87 products from the running service; the scoring pipeline has a pytest suite for GTIN handling, ingredient parsing and scoring invariants.",
       },
     ],
     stack: ["Python", "pandas", "Flask", "pytest", "Excel / openpyxl", "JavaScript"],

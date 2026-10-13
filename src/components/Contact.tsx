@@ -5,7 +5,7 @@ import { m } from "framer-motion";
 import Reveal from "@/components/Reveal";
 import { links, profile } from "@/content/site";
 import { cn } from "@/lib/utils";
-import { fadeRise, usePrefersReducedMotion } from "@/lib/motion";
+import { fadeRise, RHYTHM, usePrefersReducedMotion } from "@/lib/motion";
 
 // Public Google Apps Script web-app endpoint (not a secret). Override with VITE_CONTACT_ENDPOINT when the
 // script is redeployed under a new URL. The script is apps-script/contact-form.gs; it must be deployed with
@@ -287,7 +287,7 @@ const Contact = () => {
         </Reveal>
 
         {/* Form */}
-        <Reveal delay={0.08}>
+        <Reveal delay={RHYTHM.contact}>
           <div className="rounded-md border border-rule bg-surface p-6 sm:p-8">
             {status === "sent" ? (
               <SentConfirmation onReset={() => setStatus("idle")} />

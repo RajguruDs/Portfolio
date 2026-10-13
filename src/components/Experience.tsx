@@ -1,5 +1,6 @@
 import Section from "@/components/Section";
 import { RevealGroup, RevealItem } from "@/components/Reveal";
+import { RHYTHM } from "@/lib/motion";
 import { experience } from "@/content/profile";
 
 const Experience = () => (
@@ -13,8 +14,11 @@ const Experience = () => (
             aria-labelledby={id}
             className="grid gap-8 border-t border-rule pt-8 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.4fr)] md:gap-14"
           >
-            {/* Who and where. */}
-            <RevealGroup step={0.07}>
+            {/* Who and where. Like About, it stays pinned below the header on desktop while the responsibilities scroll. */}
+            <RevealGroup
+              step={RHYTHM.experience}
+              className="md:sticky md:top-[calc(var(--header-h)+2rem)] md:self-start"
+            >
               <RevealItem>
                 <p className="eyebrow">
                   {role.type} <span aria-hidden="true">·</span> <time className="tabular-nums">{role.period}</time>
@@ -39,12 +43,12 @@ const Experience = () => (
               </RevealItem>
             </RevealGroup>
 
-            {/* What I did — numbered, with a short label per item for scanning. */}
+            {/* Responsibilities — numbered groups: the role scope, then what I did where it is evidenced. */}
             <RevealGroup
               as="ol"
               step={0.08}
               className="border-b border-rule"
-              aria-label={`Work at ${role.organisation}`}
+              aria-label={`Responsibilities at ${role.organisation}`}
             >
               {role.highlights.map((h, i) => (
                 <RevealItem
@@ -58,6 +62,12 @@ const Experience = () => (
                   <div className="max-w-[38rem]">
                     <p className="text-[1.0625rem] font-semibold leading-snug text-ink">{h.lead}</p>
                     <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-ink-2">{h.text}</p>
+                    {h.did && (
+                      <p className="mt-2 text-[0.9375rem] leading-relaxed text-ink-2">
+                        <span className="font-medium text-ink">What I did: </span>
+                        {h.did}
+                      </p>
+                    )}
                   </div>
                 </RevealItem>
               ))}

@@ -2,6 +2,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import PointerEffects from "@/components/PointerEffects";
 import { prefersReducedMotion } from "@/lib/utils";
 
 // Handles scroll position on route changes: jump to the hash target if there is one
@@ -50,6 +51,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
       >
         Skip to content
       </a>
+      <PointerEffects />
       <Navigation />
       <main id="main" tabIndex={-1} className="outline-none">
         {children}
